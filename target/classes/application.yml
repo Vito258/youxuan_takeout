@@ -1,0 +1,38 @@
+server:
+  port: 8080
+spring:
+  application:
+    #应用的名称，可选
+    name: reggie_take_out
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: 1234
+    #邮箱配置
+  mail:
+    host: smtp.qq.com
+    username: 3090095224@qq.com
+    password: fbofslfmmuwhdghj
+    default-encoding: UTF-8
+    # redis配置
+  redis:
+      host: localhost # 本地IP 或是 虚拟机IP
+      port: 6379
+      #    password: root
+      database: 0  # 默认使用 0号db
+      cache:
+        redis:
+          time-to-live: 1800000  # 设置缓存数据的过期时间，30分钟
+
+mybatis-plus:
+  configuration:
+
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+reggie:
+  path: D:\迅雷云盘\临时文件目录\
