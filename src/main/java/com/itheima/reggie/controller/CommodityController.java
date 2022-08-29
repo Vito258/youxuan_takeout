@@ -13,10 +13,12 @@ import com.itheima.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +38,9 @@ public class CommodityController {
     @Autowired
     private SetmealService setmealService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     /**
      * 添加商品的方法
      * @param commodity
@@ -43,9 +48,18 @@ public class CommodityController {
      */
     @PostMapping
     public R<String> add(@RequestBody Commodity commodity){
-    // log.info(commodity.toString());
+     // log.info(commodity.toString());
+
+     //把商品的分类Id 和状态拼成字符串作为Redis 的Id
+     String key = "commodity_"+commodity.getCategoryId()+"_"+commodity.getStatus();
+
+
+
      commodityService.save(commodity);
 
+     //删除Redis 中对应的分类信息，防止在查询数据时数据不变
+
+     redisTemplate.delete(key);
      return R.success("添加商品成功");
     }
 
@@ -113,8 +127,12 @@ public class CommodityController {
      */
     @PutMapping
     public R<String> update(@RequestBody CommodityDto commodity){
+        //把商品的分类Id 和状态拼成字符串作为Redis 的Id
+        String key = "commodity_"+commodity.getCategoryId()+"_"+commodity.getStatus();
 
         commodityService.updateById(commodity);
+
+        redisTemplate.delete(key);
 
         return R.success("修改成功");
     }
@@ -159,7 +177,14 @@ public class CommodityController {
 
         //遍历并逐个删除
         for(Long id : ids){
+            //根据Id 查询商品
+            Commodity commodity = commodityService.getById(id);
+            //把商品的分类Id 和状态拼成字符串作为Redis 的Id
+            String key = "commodity_"+commodity.getCategoryId()+"_"+commodity.getStatus();
+            //删除商品
             commodityService.removeById(id);
+            //删除Redis 中商品（key）对应的value 数据
+            redisTemplate.delete(key);
         }
         return R.success("删除成功");
     }
@@ -196,6 +221,19 @@ public class CommodityController {
      */
     @GetMapping("/list")
     public R<List<Commodity>> list(Commodity commodity){
+        List<Commodity> list = null;
+        //把商品的分类Id 和状态拼成字符串作为Redis 的Id
+        String key = "commodity_"+commodity.getCategoryId()+"_"+commodity.getStatus();
+
+        //先从redis 中获取缓存数据
+        list =(List<Commodity>) redisTemplate.opsForValue().get(key);
+
+        //如果redis 中有缓存数据，那么直接调用，无需查询
+        if(list != null){
+            return R.success(list);
+        }
+        //如果redis中没有缓存数据，调用数据库查询并将数据储存到 redis
+
        //获得
         Long categoryId = commodity.getCategoryId();
 
@@ -209,7 +247,10 @@ public class CommodityController {
         //排序根据sort 排序，如果sort相同则根据更新时间排序
         queryWrapper.orderByAsc(Commodity::getSort).orderByAsc(Commodity::getUpdateTime);
 
-        List<Commodity> list = commodityService.list(queryWrapper);
+         list = commodityService.list(queryWrapper);
+
+         //将数据储存到redis,设置缓存存在的时间为60 分钟
+        redisTemplate.opsForValue().set(key,list,60, TimeUnit.MINUTES);
 
         return R.success(list);
     }

@@ -27,8 +27,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private RedisTemplate redisTemplate;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 发送邮箱验证码
@@ -51,11 +51,11 @@ public class UserController {
             // 真正地发送邮箱验证码
             userService.sendMsg(phone, subject, context);
 
-            //将随机生成的验证码保存到session中
-            session.setAttribute(phone, code);
+//            //将随机生成的验证码保存到session中
+//            session.setAttribute(phone, code);
 
-//            // 验证码由保存到session 优化为 缓存到Redis中，并且设置验证码的有效时间为 5分钟
-//            redisTemplate.opsForValue().set(phone, code, 5, TimeUnit.MINUTES);
+            // 验证码由保存到session 优化为 缓存到Redis中，并且设置验证码的有效时间为 5分钟
+            redisTemplate.opsForValue().set(phone, code, 5, TimeUnit.MINUTES);
 
             return R.success("验证码发送成功，请及时查看!");
         }
@@ -80,11 +80,11 @@ public class UserController {
         //获取验证码
         String code = map.get("code").toString();
 
-        //从Session中获取保存的验证码
-        Object codeInSession = session.getAttribute(phone);
+//        //从Session中获取保存的验证码
+//        Object codeInSession = session.getAttribute(phone);
 
-        // 从Redis中获取缓存验证码
-//        Object codeInSession = redisTemplate.opsForValue().get(phone);
+         //从Redis中获取缓存验证码
+        Object codeInSession = redisTemplate.opsForValue().get(phone);
 
         //进行验证码的比对（页面提交的验证码和Session中保存的验证码比对）
         if (codeInSession != null && codeInSession.equals(code)) {
@@ -104,6 +104,9 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user", user.getId());
+
+            //如果用户登录成功，删除Redis 中储存的验证码
+            redisTemplate.delete(phone);
             return R.success(user);
         }
         return R.error("登录失败");
