@@ -10,6 +10,9 @@ import com.itheima.reggie.service.SetmealCommodityService;
 import com.itheima.reggie.service.SetmealService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -87,7 +90,9 @@ public class SetmealController {
      * @param setmealDto
      * @return
      */
+
     @PostMapping
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmealDto){
 
         setmealService.saveWithDish(setmealDto);
@@ -126,7 +131,9 @@ public class SetmealController {
      * 设置销售状态的方法
      * @return
      */
+
     @PostMapping("/status/{status}")
+    @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> setStatus(@PathVariable int status,Long[] ids){
         //根据传递过来的Id查询Commodity 对象
         for(Long id :ids) {
@@ -154,7 +161,9 @@ public class SetmealController {
      * @param ids
      * @return
      */
+
    @DeleteMapping
+   @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> delete(Long[] ids){
         for(Long id : ids){
 //            Setmeal setmeal = setmealService.getById(id);
@@ -181,7 +190,9 @@ public class SetmealController {
      * @param setmealDto
      * @return
      */
+
    @PutMapping
+   @CacheEvict(value = "setmealCache",allEntries = true)
     public R<String> update(@RequestBody SetmealDto setmealDto){
 
        setmealService.updateWithDish(setmealDto);
@@ -194,7 +205,9 @@ public class SetmealController {
      * @param setmeal
      * @return
      */
+
    @GetMapping("/list")
+   @Cacheable(value = "setmealCache",key = "#setmeal.categoryId +'_'+#setmeal.status",unless = "#result == null")
     public R<List<Setmeal>> list(Setmeal setmeal){
        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
        queryWrapper.eq(setmeal.getStatus() != 0,Setmeal::getStatus,setmeal.getStatus());

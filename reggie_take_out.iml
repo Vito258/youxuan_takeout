@@ -128,5 +128,6 @@
     <orderEntry type="library" name="Maven: io.netty:netty-transport:4.1.79.Final" level="project" />
     <orderEntry type="library" name="Maven: io.projectreactor:reactor-core:3.4.21" level="project" />
     <orderEntry type="library" name="Maven: org.reactivestreams:reactive-streams:1.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-cache:2.7.2" level="project" />
   </component>
 </module>
