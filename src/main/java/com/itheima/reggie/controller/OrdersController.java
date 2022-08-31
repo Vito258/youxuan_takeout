@@ -20,7 +20,7 @@ public class OrdersController {
     @Autowired
     private OrdersService ordersService;
 
-    @GetMapping("/userPage")
+    @GetMapping("/page")
     public R<Page> selectByPage(int page , int pageSize){
         // 创建一个分页构造器
         Page pageInfo = new Page(page,pageSize);
