@@ -1,2 +1,2 @@
 # youxuan_takeout
-仿照瑞吉外卖做的宿舍小卖店项目
+采用Springboot+Vue2 的宿舍小卖店项目
